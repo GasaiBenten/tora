@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanghl.tora.mapper.ToraCommentMapper">
+    <select id="queryCommentPage" resultType="com.wanghl.tora.entity.ToraComment">
+        select a.id,b.id as blog_id,c.id as user_id,a.parent_id,a.content,a.gmt_create,a.is_delete,a.t_publish,
+               b.title,c.username
+        from tora_comment a
+                 inner join tora_blog b on a.blog_id = b.id
+                 inner join tora_user c on a.user_id = c.id
+        where is_delete=0
+        <if test="title!=null and title!=''">
+            and b.title like "%"#{title}"%"
+        </if>
+        <if test="username!=null and username!=''">
+            and c.username like "%"#{username}"%"
+        </if>
+        <if test="keyWord!=null and keyWord!=''">
+            and a.content like "%"#{keyWord}"%"
+        </if>
+        <if test="status!=null and status!='' or status==0">
+            and a.t_publish = #{status}
+        </if>
+        <if test="begin!=null and begin!=''">
+            and DATE_FORMAT(gmt_create,'%Y-%m-%d') = #{begin}
+        </if>
+        limit #{current},#{size}
+    </select>
+
+    <select id="queryDeletedPage" resultType="com.wanghl.tora.entity.ToraComment">
+        select a.id,b.id as blog_id,c.id as user_id,a.parent_id,a.content,a.gmt_create,a.is_delete,a.t_publish,
+        b.title,c.username
+        from tora_comment a
+        inner join tora_blog b on a.blog_id = b.id
+        inner join tora_user c on a.user_id = c.id
+        where is_delete=1
+        <if test="title!=null and title!=''">
+            and b.title like "%"#{title}"%"
+        </if>
+        <if test="username!=null and username!=''">
+            and c.username like "%"#{username}"%"
+        </if>
+        <if test="keyWord!=null and keyWord!=''">
+            and a.content like "%"#{keyWord}"%"
+        </if>
+        <if test="status!=null and status!='' or status==0">
+            and a.t_publish = #{status}
+        </if>
+        <if test="begin!=null and begin!=''">
+            and DATE_FORMAT(gmt_create,'%Y-%m-%d') = #{begin}
+        </if>
+        limit #{current},#{size}
+    </select>
+
+    <select id="selectComment" resultType="com.wanghl.tora.entity.ToraComment">
+        select a.id as id,a.content,a.gmt_create,a.t_publish,a.parent_id,a.is_delete,
+               b.id as blog_id,b.title,c.id as user_id,c.username,c.avatar
+        from tora_comment a
+                 inner join tora_blog b on a.blog_id = b.id
+                 inner join tora_user c on a.user_id = c.id
+        where a.is_delete = 0 and a.t_publish = 1 and a.parent_id = 0 and a.blog_id = #{blogId}
+        limit #{current},#{size}
+    </select>
+
+    <select id="selectReply" resultType="com.wanghl.tora.entity.ToraComment">
+        select a.id as id,a.content,a.gmt_create,a.t_publish,a.parent_id,a.is_delete,
+               b.id as blog_id,b.title,c.id as user_id,c.username,c.avatar,
+               (select username from tora_user where id = ( select user_id from tora_comment where id = a.parent_id)) as `to`
+        from tora_comment a
+                 inner join tora_blog b on a.blog_id = b.id
+                 inner join tora_user c on a.user_id = c.id
+        where a.is_delete = 0 and a.t_publish = 1 and a.parent_id !=
+         0 and a.blog_id = #{blogId}
+    </select>
+
+    <select id="selectCommentCount" resultType="long">
+        select count(id) from tora_comment
+        <if test="status!=null and status!='' or status==0">
+            where t_publish = #{status}
+        </if>
+    </select>
+</mapper>

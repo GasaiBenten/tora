@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wanghl.tora.mapper.ToraBlogMapper">
+    <select id="selectDeletedByQuery" resultType="com.wanghl.tora.entity.ToraBlog">
+        select id,title,username,gmt_create,gmt_modified
+        from tora_blog
+        where is_deleted=1
+        <if test="begin!=null and begin!=''">
+            and DATE_FORMAT(gmt_modified,'%Y-%m-%d') = #{begin}
+        </if>
+        <if test="username!=null and username!=''">
+            and username like "%"#{username}"%"
+        </if>
+        <if test="title!=null and title!=''">
+            and title like "%"#{title}"%"
+        </if>
+        limit #{current},#{size}
+    </select>
+</mapper>
